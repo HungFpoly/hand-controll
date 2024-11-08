@@ -2,12 +2,12 @@ const _settings = {
   NN: "./neuralNets/NN_OBJMANIP_7.json",
   threshold: 0.9, // detection sensitivity, between 0 and 1
 
-  modelURL: "./assets/AR.mp4",
+  modelURL: "./assets/AR.gif",
   animationSpeedFactor: 2,
 
   // to get this parameters, open /dev/models3D/handWithPlaceholders.blend
   // and look the pose of CubePalm mesh:
-  scale: 1,
+  scale: 0.6,
   translation: [0, -9, -1.68],
   euler: [Math.PI / 2 + Math.PI / 4, 0, 0, "XYZ"], // X,Y,Z,W
 
@@ -192,77 +192,44 @@ function start(three) {
   // init the tracker, i.e. the object stuck at the palm of the hand:
   _three.tracker = new THREE.Object3D();
 
-  // add a debug cube:
-  if (_settings.debugCube) {
-    console.log("vào lần 1");
+  const gifCanvas = document.createElement("canvas");
+  const gifContext = gifCanvas.getContext("2d");
+  const gif = new GIF({
+    workers: 2,
+    quality: 10,
+  });
+  gif.load(_settings.modelURL); // Đường dẫn đến file GIF của bạn
 
-    const s = 2;
-    const cubeGeom = new THREE.BoxGeometry(s, s, s);
-    // Move origin from center of the cube to the center of the Y = -1 face:
-    const cubeMoveMatrix = new THREE.Matrix4().makeTranslation(0, 1, 0);
-    cubeGeom.applyMatrix(cubeMoveMatrix);
-    _three.tracker.add(
-      new THREE.Mesh(cubeGeom, new THREE.MeshNormalMaterial())
-    );
-  }
+  gif.on("loaded", function () {
+    gifCanvas.width = gif.width;
+    gifCanvas.height = gif.height;
 
-  // load the ghost 3D model:
-  // new THREE.GLTFLoader(three.loadingManager).load(
-  //   _settings.modelURL,
-  //   function (gltf) {
-  //     const animatedObjectContainer = new THREE.Object3D();
-  //     const animatedObject = gltf.scene;
-  //     animatedObjectContainer.add(animatedObject);
-  //     set_poppingObject(animatedObjectContainer);
+    gif.frames.forEach((frame, i) => {
+      setTimeout(() => {
+        gifContext.drawImage(frame, 0, 0);
+      }, i * frame.delay);
+    });
+  });
 
-  //     // tweak materials:
-  //     animatedObject.traverse(function (threeStuff) {
-  //       if (!threeStuff.isMesh) {
-  //         return;
-  //       }
-  //       const mat = threeStuff.material;
-  //       mat.side = THREE.FrontSide;
-  //     });
+  const gifTexture = new THREE.CanvasTexture(gifCanvas);
 
-  //     // add to the tracker:
-  //     HandTrackerThreeHelper.add_threeObject(_three.tracker);
+  // Create a plane to display the GIF
+  const geometry = new THREE.PlaneGeometry(16, 9);
+  const material = new THREE.MeshBasicMaterial({ map: gifTexture });
+  const gifMesh = new THREE.Mesh(geometry, material);
 
-  //     // animate:
-  //     const animationClip = gltf.animations[0];
-  //     _animationMixer = new THREE.AnimationMixer(animatedObject);
-  //     _clock = new THREE.Clock();
-  //     const animationAction = _animationMixer.clipAction(animationClip);
-  //     animationAction.play();
-  //   }
-  // );
-  const video = document.createElement("video");
-  video.src = _settings.modelURL; // Cập nhật với đường dẫn video của bạn
-  video.load();
-  video.play();
-  video.loop = true; // Nếu bạn muốn video phát lặp lại
+  _three.tracker.add(gifMesh);
+  three.scene.add(_three.tracker);
 
-  // Tạo một texture từ video
-  const videoTexture = new THREE.VideoTexture(video);
+  gifMesh.position.set(0, 0, -5);
 
-  // Tạo một mặt phẳng (plane) để hiển thị video
-  const geometry = new THREE.PlaneGeometry(16, 9); // Kích thước của plane có thể thay đổi
-  const material = new THREE.MeshBasicMaterial({ map: videoTexture });
-  const videoMesh = new THREE.Mesh(geometry, material);
+  // Update GIF texture on each frame
+  three.renderer.setAnimationLoop(() => {
+    gifTexture.needsUpdate = true;
+  });
 
-  // Tạo một đối tượng chứa video và thêm nó vào tracker
-  const animatedObjectContainer = new THREE.Object3D();
-  console.log(animatedObjectContainer);
-
-  animatedObjectContainer.add(videoMesh);
-
-  // Cập nhật video texture để nó thay đổi theo khung hình video
-  videoTexture.needsUpdate = true;
-
-  // Thêm đối tượng video vào scene
-  set_poppingObject(animatedObjectContainer);
-
-  // Thêm đối tượng vào tracker:
   HandTrackerThreeHelper.add_threeObject(_three.tracker);
+  // add a debug cube:
   // tweak position, and rotation:
   const d = _settings.translation;
   const displacement = new THREE.Vector3(d[0], d[2], -d[1]); // inverse Y and Z
@@ -279,8 +246,6 @@ function start(three) {
 } //end start()
 
 function set_poppingObject(obj) {
-  console.log("vào lần 2");
-
   _three.poppingObject = obj;
   _three.poppingObject.visible = true;
   _three.tracker.add(_three.poppingObject);
@@ -290,8 +255,6 @@ function set_poppingObject(obj) {
 }
 
 function setup_hologramEffect() {
-  console.log("vào lần 3");
-
   const hologramMats = [];
   const hologramUniforms = {
     hologramColor: {
@@ -554,7 +517,6 @@ function trigger_unpoppingEffect() {
 }
 
 function create_blobShadow() {
-  console.log("vào lần 4");
   const vertexShaderSource =
     "precision lowp float;\n\
       varying vec3 vPos;\n\
@@ -613,7 +575,6 @@ function create_blobShadow() {
 }
 
 function hide_loading() {
-  console.log("vào lần 5");
   // remove loading:
   const domLoading = document.getElementById("loading");
   domLoading.style.opacity = 0;
