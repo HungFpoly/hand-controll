@@ -198,7 +198,7 @@ function start(three) {
     workers: 2,
     quality: 10,
   });
-  gif.load(_settings.modelURL); // Đường dẫn đến file GIF của bạn
+  gif.load("./assets/AR.gif"); // Đường dẫn đến file GIF của bạn
 
   gif.on("loaded", function () {
     gifCanvas.width = gif.width;
