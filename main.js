@@ -163,92 +163,6 @@ function callbackTrack(detectState) {
   }
 }
 
-// function start(three) {
-//   // pause handtracker until 3D assets are not loaded
-//   WEBARROCKSHAND.toggle_pause(true);
-
-//   if (!is_mobileOrTablet()) {
-//     // for desktop computer, hide Flip camera button and mirror canvas:
-//     document.getElementById("flipButton").style.display = "none";
-//     mirror_canvases(true);
-//   }
-
-//   // set tonemapping:
-//   three.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-//   three.renderer.outputEncoding = THREE.sRGBEncoding;
-//   _three.renderer = three.renderer;
-
-//   // set lighting:
-//   //const hemiLight = new THREE.HemisphereLight( 0x000000, 0xffffff, 1 );
-//   //three.scene.add(hemiLight);
-//   const dirLight = new THREE.DirectionalLight(0x8888ff, 0.5);
-//   dirLight.position.set(0, -100, 0);
-//   three.scene.add(dirLight);
-
-//   const dirLight2 = new THREE.DirectionalLight(0xffcc99, 0.3);
-//   dirLight2.position.set(0, 0, 100);
-//   three.scene.add(dirLight2);
-
-//   // init the tracker, i.e. the object stuck at the palm of the hand:
-//   _three.tracker = new THREE.Object3D();
-
-//   // add a debug cube:
-//   if (_settings.debugCube) {
-//     const s = 2;
-//     const cubeGeom = new THREE.BoxGeometry(s, s, s);
-//     // Move origin from center of the cube to the center of the Y = -1 face:
-//     const cubeMoveMatrix = new THREE.Matrix4().makeTranslation(0, 1, 0);
-//     cubeGeom.applyMatrix(cubeMoveMatrix);
-//     _three.tracker.add(
-//       new THREE.Mesh(cubeGeom, new THREE.MeshNormalMaterial())
-//     );
-//   }
-
-//   // load the ghost 3D model:
-//   new THREE.GLTFLoader(three.loadingManager).load(
-//     _settings.modelURL,
-//     function (gltf) {
-//       const animatedObjectContainer = new THREE.Object3D();
-//       const animatedObject = gltf.scene;
-//       animatedObjectContainer.add(animatedObject);
-//       set_poppingObject(animatedObjectContainer);
-
-//       // tweak materials:
-//       animatedObject.traverse(function (threeStuff) {
-//         if (!threeStuff.isMesh) {
-//           return;
-//         }
-//         const mat = threeStuff.material;
-//         mat.side = THREE.FrontSide;
-//       });
-
-//       // add to the tracker:
-//       HandTrackerThreeHelper.add_threeObject(_three.tracker);
-
-//       // animate:
-//       const animationClip = gltf.animations[0];
-//       _animationMixer = new THREE.AnimationMixer(animatedObject);
-//       _clock = new THREE.Clock();
-//       const animationAction = _animationMixer.clipAction(animationClip);
-//       animationAction.play();
-//     }
-//   );
-
-//   // tweak position, and rotation:
-//   const d = _settings.translation;
-//   const displacement = new THREE.Vector3(d[0], d[2], -d[1]); // inverse Y and Z
-//   _three.tracker.position.add(displacement);
-//   const euler = new THREE.Euler().fromArray(_settings.euler);
-//   _three.tracker.quaternion.setFromEuler(euler);
-
-//   three.loadingManager.onLoad = function () {
-//     console.log("INFO in main.js: Everything is loaded");
-//     hide_loading();
-//     WEBARROCKSHAND.toggle_pause(false);
-//     _state = _states.running;
-//   };
-// } //end start()
-
 function start(three) {
   // pause handtracker until 3D assets are not loaded
   WEBARROCKSHAND.toggle_pause(true);
@@ -265,6 +179,8 @@ function start(three) {
   _three.renderer = three.renderer;
 
   // set lighting:
+  //const hemiLight = new THREE.HemisphereLight( 0x000000, 0xffffff, 1 );
+  //three.scene.add(hemiLight);
   const dirLight = new THREE.DirectionalLight(0x8888ff, 0.5);
   dirLight.position.set(0, -100, 0);
   three.scene.add(dirLight);
@@ -273,33 +189,86 @@ function start(three) {
   dirLight2.position.set(0, 0, 100);
   three.scene.add(dirLight2);
 
-  // Create a video element to display instead of the 3D model:
-  const videoElement = document.createElement("video");
-  videoElement.src = _settings.modelURL; // Set the video source
-  videoElement.crossOrigin = "anonymous";
-  videoElement.loop = true; // Make the video loop
-  videoElement.muted = true; // Optional: Mute the video
-  videoElement.play();
+  // init the tracker, i.e. the object stuck at the palm of the hand:
+  _three.tracker = new THREE.Object3D();
 
-  // Create a texture from the video element:
-  const videoTexture = new THREE.VideoTexture(videoElement);
-  videoTexture.minFilter = THREE.LinearFilter;
-  videoTexture.magFilter = THREE.LinearFilter;
-  videoTexture.format = THREE.RGBFormat;
+  // add a debug cube:
+  if (_settings.debugCube) {
+    const s = 2;
+    const cubeGeom = new THREE.BoxGeometry(s, s, s);
+    // Move origin from center of the cube to the center of the Y = -1 face:
+    const cubeMoveMatrix = new THREE.Matrix4().makeTranslation(0, 1, 0);
+    cubeGeom.applyMatrix(cubeMoveMatrix);
+    _three.tracker.add(
+      new THREE.Mesh(cubeGeom, new THREE.MeshNormalMaterial())
+    );
+  }
 
-  // Create a plane geometry to display the video:
-  const planeGeometry = new THREE.PlaneGeometry(10, 10); // Adjust size as necessary
-  const planeMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
-  const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+  // load the ghost 3D model:
+  // new THREE.GLTFLoader(three.loadingManager).load(
+  //   _settings.modelURL,
+  //   function (gltf) {
+  //     const animatedObjectContainer = new THREE.Object3D();
+  //     const animatedObject = gltf.scene;
+  //     animatedObjectContainer.add(animatedObject);
+  //     set_poppingObject(animatedObjectContainer);
 
-  // Add the plane to the scene:
-  three.scene.add(plane);
+  //     // tweak materials:
+  //     animatedObject.traverse(function (threeStuff) {
+  //       if (!threeStuff.isMesh) {
+  //         return;
+  //       }
+  //       const mat = threeStuff.material;
+  //       mat.side = THREE.FrontSide;
+  //     });
 
-  // Position the plane:
-  plane.position.set(0, 0, -5); // Adjust position as necessary
+  //     // add to the tracker:
+  //     HandTrackerThreeHelper.add_threeObject(_three.tracker);
 
-  // Add other logic or animations as needed
-}
+  //     // animate:
+  //     const animationClip = gltf.animations[0];
+  //     _animationMixer = new THREE.AnimationMixer(animatedObject);
+  //     _clock = new THREE.Clock();
+  //     const animationAction = _animationMixer.clipAction(animationClip);
+  //     animationAction.play();
+  //   }
+  // );
+  const video = document.createElement("video");
+  video.src = _settings.modelURL; // Đảm bảo _settings.modelURL là đường dẫn video
+  video.load();
+  video.play();
+  video.loop = true; // Nếu bạn muốn video phát lặp lại
+  // Tạo texture từ video
+  const videoTexture = new THREE.VideoTexture(video);
+  // Tạo một mặt phẳng để hiển thị video
+  const geometry = new THREE.PlaneGeometry(16, 9); // Kích thước có thể thay đổi
+  const material = new THREE.MeshBasicMaterial({ map: videoTexture });
+  const videoMesh = new THREE.Mesh(geometry, material);
+  const videoContainer = new THREE.Object3D();
+  videoContainer.add(videoMesh);
+  set_poppingObject(videoContainer); // Giống như bạn đã làm với mô hình 3D
+  // Thêm video vào tracker
+  HandTrackerThreeHelper.add_threeObject(_three.tracker);
+  videoTexture.needsUpdate = true;
+  const animateVideo = () => {
+    videoTexture.needsUpdate = true;
+    requestAnimationFrame(animateVideo); // Tiếp tục cập nhật texture trong vòng lặp animation
+  };
+  animateVideo();
+  // tweak position, and rotation:
+  const d = _settings.translation;
+  const displacement = new THREE.Vector3(d[0], d[2], -d[1]); // inverse Y and Z
+  _three.tracker.position.add(displacement);
+  const euler = new THREE.Euler().fromArray(_settings.euler);
+  _three.tracker.quaternion.setFromEuler(euler);
+
+  three.loadingManager.onLoad = function () {
+    console.log("INFO in main.js: Everything is loaded");
+    hide_loading();
+    WEBARROCKSHAND.toggle_pause(false);
+    _state = _states.running;
+  };
+} //end start()
 
 function set_poppingObject(obj) {
   _three.poppingObject = obj;
