@@ -217,14 +217,15 @@ function start(three) {
 
     // Phát ảnh GIF trên gifCanvas
     anim.animateInCanvas(gifCanvas);
-  });
 
-  function animate() {
-    requestAnimationFrame(animate);
-    gifTexture.needsUpdate = true; // refresh texture for each frame
-    renderer.render(scene, camera);
-  }
-  animate();
+    // Cập nhật GIF texture mỗi frame
+    function animateGif() {
+      gifTexture.needsUpdate = true; // Update the texture to reflect the latest GIF frame
+      requestAnimationFrame(animateGif); // Keep updating the GIF
+    }
+
+    animateGif();
+  });
 
   HandTrackerThreeHelper.add_threeObject(_three.tracker);
   // add a debug cube:
