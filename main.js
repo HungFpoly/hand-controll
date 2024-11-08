@@ -217,12 +217,14 @@ function start(three) {
 
     // Phát ảnh GIF trên gifCanvas
     anim.animateInCanvas(gifCanvas);
-
-    // Cập nhật GIF texture mỗi frame
-    three.renderer.setAnimationLoop(() => {
-      gifTexture.needsUpdate = true;
-    });
   });
+
+  function animate() {
+    requestAnimationFrame(animate);
+    gifTexture.needsUpdate = true; // refresh texture for each frame
+    renderer.render(scene, camera);
+  }
+  animate();
 
   HandTrackerThreeHelper.add_threeObject(_three.tracker);
   // add a debug cube:
@@ -232,10 +234,13 @@ function start(three) {
   _three.tracker.position.add(displacement);
   const euler = new THREE.Euler().fromArray(_settings.euler);
   _three.tracker.quaternion.setFromEuler(euler);
-  console.log("INFO in main.js: Everything is loaded");
-  hide_loading();
-  WEBARROCKSHAND.toggle_pause(false);
-  _state = _states.running;
+
+  three.loadingManager.onLoad = function () {
+    console.log("INFO in main.js: Everything is loaded");
+    hide_loading();
+    WEBARROCKSHAND.toggle_pause(false);
+    _state = _states.running;
+  };
 } //end start()
 
 function set_poppingObject(obj) {
