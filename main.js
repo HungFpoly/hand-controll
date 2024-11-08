@@ -232,13 +232,10 @@ function start(three) {
   _three.tracker.position.add(displacement);
   const euler = new THREE.Euler().fromArray(_settings.euler);
   _three.tracker.quaternion.setFromEuler(euler);
-
-  three.loadingManager.onLoad = function () {
-    console.log("INFO in main.js: Everything is loaded");
-    hide_loading();
-    WEBARROCKSHAND.toggle_pause(false);
-    _state = _states.running;
-  };
+  console.log("INFO in main.js: Everything is loaded");
+  hide_loading();
+  WEBARROCKSHAND.toggle_pause(false);
+  _state = _states.running;
 } //end start()
 
 function set_poppingObject(obj) {
