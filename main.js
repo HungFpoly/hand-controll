@@ -221,6 +221,7 @@ function start(three) {
     // Cập nhật GIF texture mỗi frame
     three.renderer.setAnimationLoop(() => {
       gifTexture.needsUpdate = true;
+      set_poppingObject(gifTexture);
     });
   });
 
@@ -232,8 +233,6 @@ function start(three) {
   _three.tracker.position.add(displacement);
   const euler = new THREE.Euler().fromArray(_settings.euler);
   _three.tracker.quaternion.setFromEuler(euler);
-
-  console.log("INFO in main.js: Everything is loaded");
   hide_loading();
   WEBARROCKSHAND.toggle_pause(false);
   _state = _states.running;
