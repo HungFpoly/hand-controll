@@ -228,7 +228,7 @@ function start(three) {
   _three.tracker.position.add(displacement);
 
   // Điều chỉnh góc quay để khớp với lòng bàn tay
-  const eulerAdjust = [0.1, 0, 0]; // ví dụ điều chỉnh theo trục X
+  const eulerAdjust = [0.1, 0.1, 0]; // ví dụ điều chỉnh theo trục X
   const euler = new THREE.Euler()
     .fromArray(_settings.euler)
     .set(
