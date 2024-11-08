@@ -207,7 +207,7 @@ function start(three) {
   _three.tracker.add(gifMesh);
   three.scene.add(_three.tracker);
 
-  gifMesh.position.set(0, 0, -5);
+  gifMesh.position.set(0, 0, 0);
 
   // Sử dụng gifler để tải và phát ảnh GIF
   gifler("./assets/AR.gif").get((anim) => {
@@ -221,7 +221,6 @@ function start(three) {
     // Cập nhật GIF texture mỗi frame
     three.renderer.setAnimationLoop(() => {
       gifTexture.needsUpdate = true;
-      set_poppingObject(gifTexture);
     });
   });
 
