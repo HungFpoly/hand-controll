@@ -194,41 +194,33 @@ function start(three) {
 
   const gifCanvas = document.createElement("canvas");
   const gifContext = gifCanvas.getContext("2d");
-  const gif = new GIF({
-    workers: 2,
-    quality: 10,
-  });
-  gif.load("./assets/AR.gif"); // Đường dẫn đến file GIF của bạn
 
-  gif.on("loaded", function () {
-    gifCanvas.width = gif.width;
-    gifCanvas.height = gif.height;
+  gifler("./assets/AR.gif").get((anim) => {
+    gifCanvas.width = anim.width;
+    gifCanvas.height = anim.height;
 
-    gif.frames.forEach((frame, i) => {
-      setTimeout(() => {
-        gifContext.drawImage(frame, 0, 0);
-      }, i * frame.delay);
+    anim.animateInCanvas(gifCanvas); // Vẽ GIF vào canvas liên tục
+
+    const gifTexture = new THREE.CanvasTexture(gifCanvas);
+
+    // Tạo mặt phẳng để hiển thị GIF
+    const geometry = new THREE.PlaneGeometry(16, 9);
+    const material = new THREE.MeshBasicMaterial({ map: gifTexture });
+    const gifMesh = new THREE.Mesh(geometry, material);
+
+    // Thêm vào scene
+    _three.tracker.add(gifMesh);
+    three.scene.add(_three.tracker);
+
+    gifMesh.position.set(0, 0, -5);
+
+    // Cập nhật texture của GIF trên mỗi khung hình
+    three.renderer.setAnimationLoop(() => {
+      gifTexture.needsUpdate = true;
     });
+
+    HandTrackerThreeHelper.add_threeObject(_three.tracker);
   });
-
-  const gifTexture = new THREE.CanvasTexture(gifCanvas);
-
-  // Create a plane to display the GIF
-  const geometry = new THREE.PlaneGeometry(16, 9);
-  const material = new THREE.MeshBasicMaterial({ map: gifTexture });
-  const gifMesh = new THREE.Mesh(geometry, material);
-
-  _three.tracker.add(gifMesh);
-  three.scene.add(_three.tracker);
-
-  gifMesh.position.set(0, 0, -5);
-
-  // Update GIF texture on each frame
-  three.renderer.setAnimationLoop(() => {
-    gifTexture.needsUpdate = true;
-  });
-
-  HandTrackerThreeHelper.add_threeObject(_three.tracker);
   // add a debug cube:
   // tweak position, and rotation:
   const d = _settings.translation;
