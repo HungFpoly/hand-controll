@@ -199,7 +199,7 @@ function start(three) {
   const gifTexture = new THREE.CanvasTexture(gifCanvas);
 
   // Tạo một plane để hiển thị GIF trong Three.js
-  const geometry = new THREE.PlaneGeometry(16, 9);
+  const geometry = new THREE.PlaneGeometry(4, 2.25);
   const material = new THREE.MeshBasicMaterial({ map: gifTexture });
   const gifMesh = new THREE.Mesh(geometry, material);
 
@@ -222,11 +222,11 @@ function start(three) {
   HandTrackerThreeHelper.add_threeObject(_three.tracker);
   // add a debug cube:
   // tweak position, and rotation:
-  // const d = _settings.translation;
-  // const displacement = new THREE.Vector3(d[0], d[2], -d[1]); // inverse Y and Z
-  // _three.tracker.position.add(displacement);
-  // const euler = new THREE.Euler().fromArray(_settings.euler);
-  // _three.tracker.quaternion.setFromEuler(euler);
+  const d = _settings.translation;
+  const displacement = new THREE.Vector3(d[0], d[2], -d[1]); // inverse Y and Z
+  _three.tracker.position.add(displacement);
+  const euler = new THREE.Euler().fromArray(_settings.euler);
+  _three.tracker.quaternion.setFromEuler(euler);
   hide_loading();
   WEBARROCKSHAND.toggle_pause(false);
   _state = _states.running;
