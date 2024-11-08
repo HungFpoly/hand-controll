@@ -234,29 +234,31 @@ function start(three) {
   //   }
   // );
   const video = document.createElement("video");
-  video.src = _settings.modelURL; // Đảm bảo _settings.modelURL là đường dẫn video
+  video.src = _settings.videoURL; // Cập nhật với đường dẫn video của bạn
   video.load();
   video.play();
   video.loop = true; // Nếu bạn muốn video phát lặp lại
-  // Tạo texture từ video
-  const videoTexture = new THREE.VideoTexture(video);
-  console.log(videoTexture);
 
-  // Tạo một mặt phẳng để hiển thị video
-  const geometry = new THREE.PlaneGeometry(16, 9); // Kích thước có thể thay đổi
+  // Tạo một texture từ video
+  const videoTexture = new THREE.VideoTexture(video);
+
+  // Tạo một mặt phẳng (plane) để hiển thị video
+  const geometry = new THREE.PlaneGeometry(16, 9); // Kích thước của plane có thể thay đổi
   const material = new THREE.MeshBasicMaterial({ map: videoTexture });
   const videoMesh = new THREE.Mesh(geometry, material);
-  const videoContainer = new THREE.Object3D();
-  videoContainer.add(videoMesh);
-  set_poppingObject(videoContainer); // Giống như bạn đã làm với mô hình 3D
-  // Thêm video vào tracker
-  HandTrackerThreeHelper.add_threeObject(_three.tracker);
+
+  // Tạo một đối tượng chứa video và thêm nó vào tracker
+  const animatedObjectContainer = new THREE.Object3D();
+  animatedObjectContainer.add(videoMesh);
+
+  // Cập nhật video texture để nó thay đổi theo khung hình video
   videoTexture.needsUpdate = true;
-  const animateVideo = () => {
-    videoTexture.needsUpdate = true;
-    requestAnimationFrame(animateVideo); // Tiếp tục cập nhật texture trong vòng lặp animation
-  };
-  animateVideo();
+
+  // Thêm đối tượng video vào scene
+  set_poppingObject(animatedObjectContainer);
+
+  // Thêm đối tượng vào tracker:
+  HandTrackerThreeHelper.add_threeObject(_three.tracker);
   // tweak position, and rotation:
   const d = _settings.translation;
   const displacement = new THREE.Vector3(d[0], d[2], -d[1]); // inverse Y and Z
