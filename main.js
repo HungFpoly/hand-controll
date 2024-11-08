@@ -234,7 +234,7 @@ function start(three) {
   //   }
   // );
   const video = document.createElement("video");
-  video.src = _settings.videoURL; // Cập nhật với đường dẫn video của bạn
+  video.src = _settings.modelURL; // Cập nhật với đường dẫn video của bạn
   video.load();
   video.play();
   video.loop = true; // Nếu bạn muốn video phát lặp lại
