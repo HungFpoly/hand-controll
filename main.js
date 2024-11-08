@@ -192,35 +192,39 @@ function start(three) {
   // init the tracker, i.e. the object stuck at the palm of the hand:
   _three.tracker = new THREE.Object3D();
 
+  // Tạo canvas để hiển thị GIF
   const gifCanvas = document.createElement("canvas");
-  const gifContext = gifCanvas.getContext("2d");
 
+  // Tạo texture từ canvas
+  const gifTexture = new THREE.CanvasTexture(gifCanvas);
+
+  // Tạo một plane để hiển thị GIF trong Three.js
+  const geometry = new THREE.PlaneGeometry(16, 9);
+  const material = new THREE.MeshBasicMaterial({ map: gifTexture });
+  const gifMesh = new THREE.Mesh(geometry, material);
+
+  // Thêm mesh vào scene
+  _three.tracker.add(gifMesh);
+  three.scene.add(_three.tracker);
+
+  gifMesh.position.set(0, 0, -5);
+
+  // Sử dụng gifler để tải và phát ảnh GIF
   gifler("./assets/AR.gif").get((anim) => {
+    // Thiết lập kích thước canvas theo kích thước GIF
     gifCanvas.width = anim.width;
     gifCanvas.height = anim.height;
 
-    anim.animateInCanvas(gifCanvas); // Vẽ GIF vào canvas liên tục
+    // Phát ảnh GIF trên gifCanvas
+    anim.animateInCanvas(gifCanvas);
 
-    const gifTexture = new THREE.CanvasTexture(gifCanvas);
-
-    // Tạo mặt phẳng để hiển thị GIF
-    const geometry = new THREE.PlaneGeometry(16, 9);
-    const material = new THREE.MeshBasicMaterial({ map: gifTexture });
-    const gifMesh = new THREE.Mesh(geometry, material);
-
-    // Thêm vào scene
-    _three.tracker.add(gifMesh);
-    three.scene.add(_three.tracker);
-
-    gifMesh.position.set(0, 0, -5);
-
-    // Cập nhật texture của GIF trên mỗi khung hình
+    // Cập nhật GIF texture mỗi frame
     three.renderer.setAnimationLoop(() => {
       gifTexture.needsUpdate = true;
     });
-
-    HandTrackerThreeHelper.add_threeObject(_three.tracker);
   });
+
+  HandTrackerThreeHelper.add_threeObject(_three.tracker);
   // add a debug cube:
   // tweak position, and rotation:
   const d = _settings.translation;
