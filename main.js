@@ -2,7 +2,7 @@ const _settings = {
   NN: "./neuralNets/NN_OBJMANIP_7.json",
   threshold: 0.9, // detection sensitivity, between 0 and 1
 
-  modelURL: "assets/ghost.glb",
+  modelURL: "assets/AR.mp4",
   animationSpeedFactor: 2,
 
   // to get this parameters, open /dev/models3D/handWithPlaceholders.blend
@@ -248,8 +248,9 @@ function callbackTrack(detectState) {
 //     _state = _states.running;
 //   };
 // } //end start()
+
 function start(three) {
-  // pause handtracker until video is ready
+  // pause handtracker until 3D assets are not loaded
   WEBARROCKSHAND.toggle_pause(true);
 
   if (!is_mobileOrTablet()) {
@@ -272,38 +273,32 @@ function start(three) {
   dirLight2.position.set(0, 0, 100);
   three.scene.add(dirLight2);
 
-  // Create the video element
-  const video = document.createElement("video");
-  video.src = "assets/AR.mp4"; // Set your video path here
-  video.loop = true;
-  video.muted = true;
-  video.play();
+  // Create a video element to display instead of the 3D model:
+  const videoElement = document.createElement("video");
+  videoElement.src = _settings.modelURL; // Set the video source
+  videoElement.crossOrigin = "anonymous";
+  videoElement.loop = true; // Make the video loop
+  videoElement.muted = true; // Optional: Mute the video
+  videoElement.play();
 
-  // Create a video texture
-  const videoTexture = new THREE.VideoTexture(video);
+  // Create a texture from the video element:
+  const videoTexture = new THREE.VideoTexture(videoElement);
   videoTexture.minFilter = THREE.LinearFilter;
   videoTexture.magFilter = THREE.LinearFilter;
   videoTexture.format = THREE.RGBFormat;
 
-  // Create a plane to display the video
-  const videoMaterial = new THREE.MeshBasicMaterial({
-    map: videoTexture,
-    side: THREE.DoubleSide,
-  });
-  const videoGeometry = new THREE.PlaneGeometry(4, 2.25); // Adjust the size as needed
-  const videoMesh = new THREE.Mesh(videoGeometry, videoMaterial);
+  // Create a plane geometry to display the video:
+  const planeGeometry = new THREE.PlaneGeometry(10, 10); // Adjust size as necessary
+  const planeMaterial = new THREE.MeshBasicMaterial({ map: videoTexture });
+  const plane = new THREE.Mesh(planeGeometry, planeMaterial);
 
-  // Position the plane where the 3D model would have been
-  videoMesh.position.set(0, -9, -1.68);
-  videoMesh.rotation.set(Math.PI / 2 + Math.PI / 4, 0, 0); // Apply rotation similar to 3D model settings
+  // Add the plane to the scene:
+  three.scene.add(plane);
 
-  // Add the video plane to the scene
-  _three.tracker = new THREE.Object3D();
-  _three.tracker.add(videoMesh);
-  three.scene.add(_three.tracker);
+  // Position the plane:
+  plane.position.set(0, 0, -5); // Adjust position as necessary
 
-  // Unpause hand tracker once video is loaded
-  WEBARROCKSHAND.toggle_pause(false);
+  // Add other logic or animations as needed
 }
 
 function set_poppingObject(obj) {
