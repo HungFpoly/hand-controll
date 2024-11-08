@@ -192,42 +192,53 @@ function start(three) {
   // init the tracker, i.e. the object stuck at the palm of the hand:
   _three.tracker = new THREE.Object3D();
 
-  // Tạo canvas để hiển thị GIF
-  const gifCanvas = document.createElement("canvas");
+  const loadingManager = new THREE.LoadingManager();
+  loadingManager.onStart = function (url, itemsLoaded, itemsTotal) {
+    console.log(
+      "Bắt đầu tải:",
+      url,
+      "Đã tải:",
+      itemsLoaded,
+      "Tổng:",
+      itemsTotal
+    );
+  };
+  loadingManager.onLoad = function () {
+    console.log("Tất cả mô hình đã được tải!");
+  };
+  loadingManager.onProgress = function (url, itemsLoaded, itemsTotal) {
+    console.log("Tiến trình:", itemsLoaded, " trên tổng số ", itemsTotal);
+  };
+  loadingManager.onError = function (url) {
+    console.log("Lỗi khi tải:", url);
+  };
 
-  // Tạo texture từ canvas
-  const gifTexture = new THREE.CanvasTexture(gifCanvas);
+  // 2. Tạo GLTFLoader và truyền loadingManager vào
+  const loader = new THREE.GLTFLoader(loadingManager);
 
-  // Tạo một plane để hiển thị GIF trong Three.js
-  const geometry = new THREE.PlaneGeometry(16, 9);
-  const material = new THREE.MeshBasicMaterial({ map: gifTexture });
-  const gifMesh = new THREE.Mesh(geometry, material);
+  // 3. Tải mô hình
+  loader.load(_settings.modelURL, function (gltf) {
+    const animatedObjectContainer = new THREE.Object3D();
+    const animatedObject = gltf.scene;
+    animatedObjectContainer.add(animatedObject);
+    set_poppingObject(animatedObjectContainer);
 
-  // Thêm mesh vào scene
-  _three.tracker.add(gifMesh);
-  three.scene.add(_three.tracker);
+    // Điều chỉnh vật liệu:
+    animatedObject.traverse(function (threeStuff) {
+      if (!threeStuff.isMesh) return;
+      threeStuff.material.side = THREE.FrontSide;
+    });
 
-  gifMesh.position.set(0, 0, -5);
+    // Thêm vào tracker:
+    HandTrackerThreeHelper.add_threeObject(_three.tracker);
 
-  // Sử dụng gifler để tải và phát ảnh GIF
-  gifler("./assets/AR.gif").get((anim) => {
-    // Thiết lập kích thước canvas theo kích thước GIF
-    gifCanvas.width = anim.width;
-    gifCanvas.height = anim.height;
-
-    // Phát ảnh GIF trên gifCanvas
-    anim.animateInCanvas(gifCanvas);
-
-    // Cập nhật GIF texture mỗi frame
-    function animateGif() {
-      gifTexture.needsUpdate = true; // Update the texture to reflect the latest GIF frame
-      requestAnimationFrame(animateGif); // Keep updating the GIF
-    }
-
-    animateGif();
+    // Tạo hoạt cảnh
+    const animationClip = gltf.animations[0];
+    _animationMixer = new THREE.AnimationMixer(animatedObject);
+    _clock = new THREE.Clock();
+    const animationAction = _animationMixer.clipAction(animationClip);
+    animationAction.play();
   });
-
-  HandTrackerThreeHelper.add_threeObject(_three.tracker);
   // add a debug cube:
   // tweak position, and rotation:
   const d = _settings.translation;
