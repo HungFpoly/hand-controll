@@ -209,16 +209,11 @@ function start(three) {
 
   gifMesh.position.set(0, 0, 0);
 
-  // Sử dụng gifler để tải và phát ảnh GIF
   gifler("./assets/AR.gif").get((anim) => {
-    // Thiết lập kích thước canvas theo kích thước GIF
     gifCanvas.width = anim.width;
     gifCanvas.height = anim.height;
 
-    // Phát ảnh GIF trên gifCanvas
     anim.animateInCanvas(gifCanvas);
-
-    // Cập nhật GIF texture mỗi frame
     three.renderer.setAnimationLoop(() => {
       gifTexture.needsUpdate = true;
     });
@@ -227,11 +222,11 @@ function start(three) {
   HandTrackerThreeHelper.add_threeObject(_three.tracker);
   // add a debug cube:
   // tweak position, and rotation:
-  const d = _settings.translation;
-  const displacement = new THREE.Vector3(d[0], d[2], -d[1]); // inverse Y and Z
-  _three.tracker.position.add(displacement);
-  const euler = new THREE.Euler().fromArray(_settings.euler);
-  _three.tracker.quaternion.setFromEuler(euler);
+  // const d = _settings.translation;
+  // const displacement = new THREE.Vector3(d[0], d[2], -d[1]); // inverse Y and Z
+  // _three.tracker.position.add(displacement);
+  // const euler = new THREE.Euler().fromArray(_settings.euler);
+  // _three.tracker.quaternion.setFromEuler(euler);
   hide_loading();
   WEBARROCKSHAND.toggle_pause(false);
   _state = _states.running;
