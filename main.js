@@ -240,6 +240,8 @@ function start(three) {
   video.loop = true; // Nếu bạn muốn video phát lặp lại
   // Tạo texture từ video
   const videoTexture = new THREE.VideoTexture(video);
+  console.log(videoTexture);
+
   // Tạo một mặt phẳng để hiển thị video
   const geometry = new THREE.PlaneGeometry(16, 9); // Kích thước có thể thay đổi
   const material = new THREE.MeshBasicMaterial({ map: videoTexture });
