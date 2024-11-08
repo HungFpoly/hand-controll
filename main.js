@@ -199,7 +199,7 @@ function start(three) {
   const gifTexture = new THREE.CanvasTexture(gifCanvas);
 
   // Tạo một plane để hiển thị GIF trong Three.js
-  const geometry = new THREE.PlaneGeometry(10, 10);
+  const geometry = new THREE.PlaneGeometry(10, 5);
   const material = new THREE.MeshBasicMaterial({ map: gifTexture });
   const gifMesh = new THREE.Mesh(geometry, material);
 
@@ -223,9 +223,20 @@ function start(three) {
   // add a debug cube:
   // tweak position, and rotation:
   const d = _settings.translation;
-  const displacement = new THREE.Vector3(d[0], d[2], -d[1]); // inverse Y and Z
+  const displacement = new THREE.Vector3(d[0] * 0.5, d[2] * 0.5, -d[1] * 0.5); // nhân hệ số để tinh chỉnh vị trí
+
   _three.tracker.position.add(displacement);
-  const euler = new THREE.Euler().fromArray(_settings.euler);
+
+  // Điều chỉnh góc quay để khớp với lòng bàn tay
+  const eulerAdjust = [0.1, 0, 0]; // ví dụ điều chỉnh theo trục X
+  const euler = new THREE.Euler()
+    .fromArray(_settings.euler)
+    .set(
+      _settings.euler[0] + eulerAdjust[0],
+      _settings.euler[1] + eulerAdjust[1],
+      _settings.euler[2] + eulerAdjust[2]
+    );
+
   _three.tracker.quaternion.setFromEuler(euler);
   hide_loading();
   WEBARROCKSHAND.toggle_pause(false);
