@@ -194,6 +194,8 @@ function start(three) {
 
   // add a debug cube:
   if (_settings.debugCube) {
+    console.log("vào lần 1");
+
     const s = 2;
     const cubeGeom = new THREE.BoxGeometry(s, s, s);
     // Move origin from center of the cube to the center of the Y = -1 face:
@@ -277,6 +279,8 @@ function start(three) {
 } //end start()
 
 function set_poppingObject(obj) {
+  console.log("vào lần 2");
+
   _three.poppingObject = obj;
   _three.poppingObject.visible = true;
   _three.tracker.add(_three.poppingObject);
@@ -286,6 +290,8 @@ function set_poppingObject(obj) {
 }
 
 function setup_hologramEffect() {
+  console.log("vào lần 3");
+
   const hologramMats = [];
   const hologramUniforms = {
     hologramColor: {
@@ -548,6 +554,7 @@ function trigger_unpoppingEffect() {
 }
 
 function create_blobShadow() {
+  console.log("vào lần 4");
   const vertexShaderSource =
     "precision lowp float;\n\
       varying vec3 vPos;\n\
@@ -606,6 +613,7 @@ function create_blobShadow() {
 }
 
 function hide_loading() {
+  console.log("vào lần 5");
   // remove loading:
   const domLoading = document.getElementById("loading");
   domLoading.style.opacity = 0;
