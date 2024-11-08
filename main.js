@@ -199,7 +199,7 @@ function start(three) {
   const gifTexture = new THREE.CanvasTexture(gifCanvas);
 
   // Tạo một plane để hiển thị GIF trong Three.js
-  const geometry = new THREE.PlaneGeometry(4, 2.25);
+  const geometry = new THREE.PlaneGeometry(10, 10);
   const material = new THREE.MeshBasicMaterial({ map: gifTexture });
   const gifMesh = new THREE.Mesh(geometry, material);
 
