@@ -192,61 +192,39 @@ function start(three) {
   // init the tracker, i.e. the object stuck at the palm of the hand:
   _three.tracker = new THREE.Object3D();
 
-  const loadingManager = new THREE.LoadingManager();
-  // Sử dụng FileLoader để tải GIF và thêm vào loadingManager
-  const fileLoader = new THREE.FileLoader(loadingManager);
-  fileLoader.load(
-    "./assets/AR.gif",
-    (data) => {
-      // Tạo canvas để hiển thị GIF
-      const gifCanvas = document.createElement("canvas");
+  // Tạo canvas để hiển thị GIF
+  const gifCanvas = document.createElement("canvas");
 
-      // Tạo texture từ canvas
-      const gifTexture = new THREE.CanvasTexture(gifCanvas);
+  // Tạo texture từ canvas
+  const gifTexture = new THREE.CanvasTexture(gifCanvas);
 
-      // Tạo một plane để hiển thị GIF trong Three.js
-      const geometry = new THREE.PlaneGeometry(16, 9);
-      const material = new THREE.MeshBasicMaterial({ map: gifTexture });
-      const gifMesh = new THREE.Mesh(geometry, material);
+  // Tạo một plane để hiển thị GIF trong Three.js
+  const geometry = new THREE.PlaneGeometry(16, 9);
+  const material = new THREE.MeshBasicMaterial({ map: gifTexture });
+  const gifMesh = new THREE.Mesh(geometry, material);
 
-      // Thêm mesh vào scene
-      _three.tracker.add(gifMesh);
-      three.scene.add(_three.tracker);
+  // Thêm mesh vào scene
+  _three.tracker.add(gifMesh);
+  three.scene.add(_three.tracker);
 
-      gifMesh.position.set(0, 0, -5);
+  gifMesh.position.set(0, 0, -5);
 
-      // Sử dụng gifler để tải và phát ảnh GIF
-      gifler(data).get((anim) => {
-        // Thiết lập kích thước canvas theo kích thước GIF
-        gifCanvas.width = anim.width;
-        gifCanvas.height = anim.height;
+  // Sử dụng gifler để tải và phát ảnh GIF
+  gifler("./assets/AR.gif").get((anim) => {
+    // Thiết lập kích thước canvas theo kích thước GIF
+    gifCanvas.width = anim.width;
+    gifCanvas.height = anim.height;
 
-        // Phát ảnh GIF trên gifCanvas
-        anim.animateInCanvas(gifCanvas);
+    // Phát ảnh GIF trên gifCanvas
+    anim.animateInCanvas(gifCanvas);
 
-        // Cập nhật GIF texture mỗi frame
-        function animateGif() {
-          gifTexture.needsUpdate = true; // Update the texture to reflect the latest GIF frame
-          requestAnimationFrame(animateGif); // Keep updating the GIF
-        }
-        animateGif();
-      });
+    // Cập nhật GIF texture mỗi frame
+    three.renderer.setAnimationLoop(() => {
+      gifTexture.needsUpdate = true;
+    });
+  });
 
-      // Thêm HandTrackerThreeHelper vào tracker sau khi GIF tải xong
-      HandTrackerThreeHelper.add_threeObject(_three.tracker);
-
-      // Cấu hình vị trí và góc của tracker
-      const d = _settings.translation;
-      const displacement = new THREE.Vector3(d[0], d[2], -d[1]); // đảo ngược Y và Z
-      _three.tracker.position.add(displacement);
-      const euler = new THREE.Euler().fromArray(_settings.euler);
-      _three.tracker.quaternion.setFromEuler(euler);
-    },
-    undefined,
-    (error) => {
-      console.error("Lỗi khi tải GIF:", error);
-    }
-  );
+  HandTrackerThreeHelper.add_threeObject(_three.tracker);
   // add a debug cube:
   // tweak position, and rotation:
   const d = _settings.translation;
@@ -254,12 +232,11 @@ function start(three) {
   _three.tracker.position.add(displacement);
   const euler = new THREE.Euler().fromArray(_settings.euler);
   _three.tracker.quaternion.setFromEuler(euler);
-  three.loadingManager.onLoad = function () {
-    console.log("INFO in main.js: Everything is loaded");
-    hide_loading();
-    WEBARROCKSHAND.toggle_pause(false);
-    _state = _states.running;
-  };
+
+  console.log("INFO in main.js: Everything is loaded");
+  hide_loading();
+  WEBARROCKSHAND.toggle_pause(false);
+  _state = _states.running;
 } //end start()
 
 function set_poppingObject(obj) {
