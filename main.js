@@ -108,13 +108,13 @@ function main() {
       "backTop", //*/
 
       /*'backMiddle','palmBaseThumb', 'palmSideIndex', 'palmMiddleRing', 'palmRingPinky', 'palmSidePinky',
-        'palmMiddle', 'palmSide',
-        'backTop' //*/
+      'palmMiddle', 'palmSide',
+      'backTop' //*/
 
       /*'palmBaseThumb', 'palmSideIndex', 'palmIndexMiddle', 'palmMiddleRing', 'palmRingPinky', 'palmSidePinky',
-        'palmWrist' //*/
+      'palmWrist' //*/
       /*'backWrist', 'palmSideIndex', 'palmMiddleRing', 'palmSidePinky',
-        'backMiddle', 'backTop' //*/
+      'backMiddle', 'backTop' //*/
     ],
     cameraZoom: 1,
     cameraFovRange: [30, 60],
@@ -192,55 +192,61 @@ function start(three) {
   // init the tracker, i.e. the object stuck at the palm of the hand:
   _three.tracker = new THREE.Object3D();
 
-  // Tạo canvas để hiển thị GIF
-  const gifCanvas = document.createElement("canvas");
-
-  // Tạo texture từ canvas
-  const gifTexture = new THREE.CanvasTexture(gifCanvas);
-
-  // Tạo một plane để hiển thị GIF trong Three.js
-  const geometry = new THREE.PlaneGeometry(10, 5);
-  const material = new THREE.MeshBasicMaterial({ map: gifTexture });
-  const gifMesh = new THREE.Mesh(geometry, material);
-
-  // Thêm mesh vào scene
-  _three.tracker.add(gifMesh);
-  three.scene.add(_three.tracker);
-
-  gifMesh.position.set(0, 0, 0);
-
-  gifler("./assets/AR.gif").get((anim) => {
-    gifCanvas.width = anim.width;
-    gifCanvas.height = anim.height;
-
-    anim.animateInCanvas(gifCanvas);
-    three.renderer.setAnimationLoop(() => {
-      gifTexture.needsUpdate = true;
-    });
-  });
-
-  HandTrackerThreeHelper.add_threeObject(_three.tracker);
   // add a debug cube:
+  if (_settings.debugCube) {
+    const s = 2;
+    const cubeGeom = new THREE.BoxGeometry(s, s, s);
+    // Move origin from center of the cube to the center of the Y = -1 face:
+    const cubeMoveMatrix = new THREE.Matrix4().makeTranslation(0, 1, 0);
+    cubeGeom.applyMatrix(cubeMoveMatrix);
+    _three.tracker.add(
+      new THREE.Mesh(cubeGeom, new THREE.MeshNormalMaterial())
+    );
+  }
+
+  // load the ghost 3D model:
+  new THREE.GLTFLoader(three.loadingManager).load(
+    _settings.modelURL,
+    function (gltf) {
+      const animatedObjectContainer = new THREE.Object3D();
+      const animatedObject = gltf.scene;
+      animatedObjectContainer.add(animatedObject);
+      set_poppingObject(animatedObjectContainer);
+
+      // tweak materials:
+      animatedObject.traverse(function (threeStuff) {
+        if (!threeStuff.isMesh) {
+          return;
+        }
+        const mat = threeStuff.material;
+        mat.side = THREE.FrontSide;
+      });
+
+      // add to the tracker:
+      HandTrackerThreeHelper.add_threeObject(_three.tracker);
+
+      // animate:
+      const animationClip = gltf.animations[0];
+      _animationMixer = new THREE.AnimationMixer(animatedObject);
+      _clock = new THREE.Clock();
+      const animationAction = _animationMixer.clipAction(animationClip);
+      animationAction.play();
+    }
+  );
+
   // tweak position, and rotation:
   const d = _settings.translation;
-  const displacement = new THREE.Vector3(d[0] * 0.5, d[2] * 0.5, -d[1] * 0.5); // nhân hệ số để tinh chỉnh vị trí
-
+  const displacement = new THREE.Vector3(d[0], d[2], -d[1]); // inverse Y and Z
   _three.tracker.position.add(displacement);
-
-  // Điều chỉnh góc quay để khớp với lòng bàn tay
-  const eulerAdjust = [0.1, 0.1, 0]; // ví dụ điều chỉnh theo trục X
-  const euler = new THREE.Euler()
-    .fromArray(_settings.euler)
-    .set(
-      _settings.euler[0] + eulerAdjust[0],
-      _settings.euler[1] + eulerAdjust[1],
-      _settings.euler[2] + eulerAdjust[2]
-    );
-
+  const euler = new THREE.Euler().fromArray(_settings.euler);
   _three.tracker.quaternion.setFromEuler(euler);
-  hide_loading();
-  WEBARROCKSHAND.toggle_pause(false);
-  _state = _states.running;
+
+  three.loadingManager.onLoad = function () {
+    console.log("INFO in main.js: Everything is loaded");
+    hide_loading();
+    WEBARROCKSHAND.toggle_pause(false);
+    _state = _states.running;
+  };
 } //end start()
 
 function set_poppingObject(obj) {
@@ -289,15 +295,15 @@ function setup_hologramEffect() {
 
       const GLSLTweakOutputPars =
         "\n\
-          uniform vec3 hologramColor;\n\
-          uniform float hologramTransitionColorCoeff, hologramAlphaSrc;\n\
-        \n";
+        uniform vec3 hologramColor;\n\
+        uniform float hologramTransitionColorCoeff, hologramAlphaSrc;\n\
+      \n";
       const GLSLTweakOutput =
         "\n\
-          float hologramLighting = max(0.0, normal.z);\n\
-          vec3 hologramMixedColor = mix(hologramColor * hologramLighting, gl_FragColor.rgb, hologramTransitionColorCoeff);\n\
-          gl_FragColor = vec4(hologramMixedColor, hologramAlphaSrc);\n\
-        \n";
+        float hologramLighting = max(0.0, normal.z);\n\
+        vec3 hologramMixedColor = mix(hologramColor * hologramLighting, gl_FragColor.rgb, hologramTransitionColorCoeff);\n\
+        gl_FragColor = vec4(hologramMixedColor, hologramAlphaSrc);\n\
+      \n";
 
       // insert GLSL code:
       const fragmentShaderSourceArr = fragmentShaderSource.split("\n");
@@ -517,26 +523,26 @@ function trigger_unpoppingEffect() {
 function create_blobShadow() {
   const vertexShaderSource =
     "precision lowp float;\n\
-      varying vec3 vPos;\n\
-      void main(void){\n\
-        vec3 transformed = vec3( position );\n\
-        vec4 mvPosition = vec4( transformed, 1.0 );\n\
-        mvPosition = modelViewMatrix * mvPosition;\n\
-        gl_Position = projectionMatrix * mvPosition;\n\
-        vPos = position;\n\
-      }";
+    varying vec3 vPos;\n\
+    void main(void){\n\
+      vec3 transformed = vec3( position );\n\
+      vec4 mvPosition = vec4( transformed, 1.0 );\n\
+      mvPosition = modelViewMatrix * mvPosition;\n\
+      gl_Position = projectionMatrix * mvPosition;\n\
+      vPos = position;\n\
+    }";
   const fragmentShaderSource =
     "precision lowp float;\n\
-      varying vec3 vPos;\n\
-      uniform vec3 blobShadowColor;\n\
-      uniform vec2 blobShadowRadiusRange;\n\
-      uniform float blobShadowAlphaMax;\n\
-      void main(void){\n\
-        float radius = length(vPos);\n\
-        float alpha = blobShadowAlphaMax * smoothstep(blobShadowRadiusRange.y, blobShadowRadiusRange.x, radius);\n\
-        gl_FragColor = vec4(blobShadowColor, alpha);\n\
-        //gl_FragColor = vec4(1., 0., 0., 1.);\n\
-      }";
+    varying vec3 vPos;\n\
+    uniform vec3 blobShadowColor;\n\
+    uniform vec2 blobShadowRadiusRange;\n\
+    uniform float blobShadowAlphaMax;\n\
+    void main(void){\n\
+      float radius = length(vPos);\n\
+      float alpha = blobShadowAlphaMax * smoothstep(blobShadowRadiusRange.y, blobShadowRadiusRange.x, radius);\n\
+      gl_FragColor = vec4(blobShadowColor, alpha);\n\
+      //gl_FragColor = vec4(1., 0., 0., 1.);\n\
+    }";
   const blobShadowUniforms = {
     blobShadowRadiusRange: {
       value: new THREE.Vector2(
