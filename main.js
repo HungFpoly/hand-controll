@@ -2,7 +2,7 @@ const _settings = {
   NN: "./neuralNets/NN_OBJMANIP_7.json",
   threshold: 0.9, // detection sensitivity, between 0 and 1
 
-  modelURL: "./assets/AR.gif",
+  modelURL: "./assets/merry_christmas_greeting_card.glb",
   animationSpeedFactor: 2,
 
   // to get this parameters, open /dev/models3D/handWithPlaceholders.blend
